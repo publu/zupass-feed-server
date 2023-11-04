@@ -44,8 +44,8 @@ export async function initFeedHost() {
       {
         feed: {
           id: "1",
-          name: "HackZuzalu",
-          description: "HackZuzalu",
+          name: "First feed",
+          description: "First test feed",
           permissions: folders.flatMap((folder) => {
             return [
               {

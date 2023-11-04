@@ -4,7 +4,6 @@
   "compilerOptions": {
     "composite": false,
     "declaration": true,
-    "declarationDir": "./declarations",
     "declarationMap": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -21,7 +20,6 @@
     "lib": ["ES2015", "DOM"],
     "module": "CommonJS",
     "target": "es6",
-    "outDir": "./build",
     "resolveJsonModule": true
   }
 }
