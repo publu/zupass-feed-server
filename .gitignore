@@ -13,3 +13,7 @@ yarn-error.log*
 .env.production.local
 .env
 
+/build/*
+/declarations/*
+
+.vercel
