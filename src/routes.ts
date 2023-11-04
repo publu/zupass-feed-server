@@ -1,6 +1,7 @@
 import { getEdDSAPublicKey } from "@pcd/eddsa-pcd";
 import { ListFeedsRequest, PollFeedRequest } from "@pcd/passport-interface";
 import { Router } from "express";
+import { loadTickets } from "./config";
 import { feedHost } from "./feeds";
 
 const routes = Router();
@@ -37,5 +38,18 @@ routes.get("/issue/eddsa-public-key", async (req, res) => {
   );
 });
 
+routes.get("/ticket/:uuid", async (req, res) => {
+  const uuid = req.params.uuid;
+  const tickets = await loadTickets();
+
+  for (const ticketArray of Object.values(tickets)) {
+    const ticket = ticketArray.find(ticket => ticket.ticketId === uuid);
+    if (ticket) {
+      return res.json(ticket);
+    }
+  }
+
+  return res.status(404).send("Ticket not found");
+});
 
 export default routes;
