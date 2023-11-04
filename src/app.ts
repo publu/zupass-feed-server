@@ -16,8 +16,7 @@ class Application {
     this.server.use(express.json());
     this.server.use(
       cors({
-        origin: "*",
-        methods: ["GET", "POST", "PUT", "DELETE"]
+        origin: "https://zupass.org",
       })
     );
   }
