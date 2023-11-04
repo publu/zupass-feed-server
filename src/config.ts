@@ -10,11 +10,13 @@ const TicketSchema = z.object({
   ticketId: z.string().uuid(),
   eventId: z.string().uuid(),
   productId: z.string().uuid(),
-  ticketCategory: z.enum(["Devconnect", "ZuConnect"]).transform((str) => {
+  ticketCategory: z.enum(["Devconnect", "ZuConnect", "HackZuzalu"]).transform((str) => {
     if (str === "Devconnect") {
       return TicketCategory.Devconnect;
-    } else {
+    } else if (str === "ZuConnect") {
       return TicketCategory.ZuConnect;
+    } else {
+      return "HackZuzalu";
     }
   })
 });
