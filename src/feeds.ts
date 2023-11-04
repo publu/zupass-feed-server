@@ -44,8 +44,8 @@ export async function initFeedHost() {
       {
         feed: {
           id: "1",
-          name: "First feed",
-          description: "First test feed",
+          name: "HackZuzalu Feed",
+          description: "HackZuzalu Feed",
           permissions: folders.flatMap((folder) => {
             return [
               {
@@ -89,8 +89,8 @@ export async function initFeedHost() {
         }
       }
     ],
-    "http://localhost:3100/feeds",
-    "Test Feed Server"
+    "https://zupass-feed-server-laozi-theqidaoteam.vercel.app/feeds",
+    "HackZuzalu Feed Server"
   );
 }
 
