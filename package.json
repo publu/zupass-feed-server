@@ -1,10 +1,10 @@
 {
   "license": "GPL-3.0-or-later",
   "scripts": {
-    "dev": "NODE_ENV=development ts-node-dev --exit-child -- src/main.ts",
-    "build": "tsc --noEmit",
+    "dev": "NODE_ENV=production PORT=3000 node build/main.js",
+    "build": "tsc",
     "lint": "eslint \"**/*.ts{,x}\"",
-    "start": "NODE_ENV=production PORT=3000 ts-node src/main.ts"
+    "start": "NODE_ENV=production PORT=3000 node build/main.js"
   },
   "devDependencies": {
     "@pcd/eslint-config-custom": "^0.6.2",

@@ -1,0 +1,20 @@
+{
+  "devCommand": "yarn dev",
+  "buildCommand": "yarn && yarn build",
+  "builds": [
+    {
+      "src": "build/main.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/feed/(.*)",
+      "dest": "/feed/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/build/main.js"
+    }
+  ]
+}
