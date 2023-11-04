@@ -89,7 +89,7 @@ export async function initFeedHost() {
         }
       }
     ],
-    "https://zupass-feed-server-laozi-theqidaoteam.vercel.app/feeds",
+    "https://zk-feed-server.vercel.app/feeds",
     "HackZuzalu Feed Server"
   );
 }
