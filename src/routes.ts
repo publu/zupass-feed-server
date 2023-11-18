@@ -16,6 +16,15 @@ routes.get("/feeds", async (req, res) => {
   return res.json(await feedHost.handleListFeedsRequest(request));
 });
 
+routes.post("/create-ticket", async (req, res) => {
+  const uuid = req.body.uuid;
+  if (!uuid) {
+    return res.status(400).send("UUID is required");
+  }
+  // Code to create a ticket for a user goes here
+  return res.json({ message: "Ticket created successfully" });
+});
+
 routes.post("/feeds", async (req, res) => {
   const request = req.body as PollFeedRequest;
 
