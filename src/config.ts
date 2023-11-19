@@ -82,7 +82,31 @@ export async function loadTickets(): Promise<Record<string, Ticket[]>> {
     }
   });
   const tickets = TicketFileSchema.parse({
-    "Linea": lineaTicketsFormatted
+    "Linea": lineaTicketsFormatted,
+    "HackZuzalu": [
+      {
+        "attendeeEmail": "pablo@hashingsystems.com",
+        "attendeeName": "Pablo the Penguin",
+        "eventName": "HackZuzalu Istanbul",
+        "ticketName": "Hacker",
+        "ticketId": "f65d8af8-e4c8-41c1-b9e2-0fb5d197c2ba", 
+        "eventId": "3e8970cf-499b-4679-967b-8aa6647b288e",  
+        "productId": "a9f5e8a9-5a6e-4419-aa80-5c0f18efb6dd",
+        "ticketCategory": "HackZuzalu"
+      }
+    ],
+    "EthIstanbul": [
+      {
+        "attendeeEmail": "pablo@hashingsystems.com",
+        "attendeeName": "Pablo the Penguin",
+        "eventName": "Ethereum Istanbul",
+        "ticketName": "Hacker",
+        "ticketId": "3e8970cf-e4c8-41c1-b9e2-0fb5d197c2ba", 
+        "eventId": "f65d8af8-499b-4679-967b-8aa6647b288e",  
+        "productId": "a9f5e8a9-5a6e-4419-aa80-5c0f18efb6dd",
+        "ticketCategory": "EthIstanbul"
+      }
+    ]
   });
   console.log("tickets:", tickets)
   return tickets;
