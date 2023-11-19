@@ -16,7 +16,7 @@ routes.get("/feeds", async (req, res) => {
   return res.json(await feedHost.handleListFeedsRequest(request));
 });
 
-routes.post("/create-ticket", async (req, res) => {
+routes.post("/create-ticket-linea", async (req, res) => {
   const uuid = req.body.uuid;
   if (!uuid) {
     return res.status(400).send("UUID is required");
