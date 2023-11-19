@@ -137,7 +137,7 @@ export async function loadTickets(): Promise<Record<string, Ticket[]>> {
       "ticketId": uuidv4(),
       "eventId": uuidv4(),
       "productId": uuidv4(),
-      "ticketCategory": "Chiliz"
+      "ticketCategory": "Chiliz Fan"
     }
   });
   const tickets = TicketFileSchema.parse({
