@@ -90,7 +90,7 @@ export async function initFeedHost() {
       }
     ],
     "https://zk-feed-server.vercel.app/feeds",
-    "HackZuzalu Feed Server"
+    "ZuzaFrens Feed Server"
   );
 }
 

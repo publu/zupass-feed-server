@@ -108,5 +108,6 @@ export async function loadTickets(): Promise<Record<string, Ticket[]>> {
       }
     ]
   });
+  console.log("tickets:", tickets)
   return tickets;
 }
