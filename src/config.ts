@@ -14,7 +14,7 @@ const TicketSchema = z.object({
   ticketId: z.string().uuid(),
   eventId: z.string().uuid(),
   productId: z.string().uuid(),
-  ticketCategory: z.enum(["Devconnect", "ZuConnect", "HackZuzalu", "EthIstanbul", "Linea"]).transform((str) => {
+  ticketCategory: z.enum(["Devconnect", "ZuConnect", "HackZuzalu", "EthIstanbul", "Linea", "Chiliz Fan"]).transform((str) => {
     if (str === "Devconnect") {
       return TicketCategory.Devconnect;
     } else {
@@ -34,6 +34,25 @@ async function queryLineaContract() {
   const contract = new ethers.Contract(contractAddress, contractABI, provider);
   const result = await contract.getUuids(); // Replace with the actual function you want to call
   return result;
+}
+async function queryChilizContract() {
+  const provider = new ethers.providers.JsonRpcProvider('https://rpc.ankr.com/chiliz');
+  const contractAddress = '0x56E4ca7f050D9caf72568087B6461405f87a43d8';
+  const contractABI = [{"inputs":[{"internalType":"string","name":"_uuid","type":"string"}],"name":"addUuid","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getUuids","outputs":[{"internalType":"string[]","name":"","type":"string[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"uuids","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"}]; // Replace with the actual ABI
+  const contract = new ethers.Contract(contractAddress, contractABI, provider);
+  const result = await contract.getUuids(); // Replace with the actual function you want to call
+  return result;
+}
+async function queryChilizTickets(): Promise<Record<string, Ticket[]>> {
+  const uuids = await queryChilizContract();
+  const tickets = await Promise.all(uuids.map(async (uuid: string) => {
+    const ticketData = await queryZupassAPI(uuid);
+    if (!ticketData.email) {
+      throw new Error(`Missing attendeeEmail for uuid: ${uuid}, ${JSON.stringify(ticketData)}`);
+    }
+    return TicketSchema.parse(ticketData);
+  }));
+  return { "ChilizTickets": tickets };
 }
 
 const LineaTicketSchema = z.object({
@@ -66,6 +85,32 @@ export async function loadLineaTickets(): Promise<Record<string, LineaTicket[]>>
   return { "LineaTickets": tickets };
 }
 
+const ChilizTicketSchema = z.object({
+  email: z.string(),
+  uuid: z.string().uuid(),
+  commitment: z.string(),
+  role: z.string(),
+  terms_agreed: z.number(),
+});
+
+export type ChilizTicket = z.infer<typeof ChilizTicketSchema>;
+
+const ChilizTicketFileSchema = z.record(z.array(ChilizTicketSchema));
+
+
+export async function loadChilizTickets(): Promise<Record<string, ChilizTicket[]>> {
+  const uuids = await queryChilizContract();
+  const tickets = await Promise.all(uuids.map(async (uuid: string) => {
+    const ticketData = await queryZupassAPI(uuid);
+    if (!ticketData.email) {
+      throw new Error(`Missing attendeeEmail for uuid: ${uuid}, ${JSON.stringify(ticketData)}`);
+    }
+    return ChilizTicketSchema.parse(ticketData);
+  }));
+  return { "ChilizTickets": tickets };
+}
+
+
 export async function loadTickets(): Promise<Record<string, Ticket[]>> {
   const lineaTickets = loadLineaTickets();
   const lineaTicketsData = await lineaTickets;
@@ -81,8 +126,23 @@ export async function loadTickets(): Promise<Record<string, Ticket[]>> {
       "ticketCategory": "Linea"
     }
   });
+  const chilizTickets = loadChilizTickets();
+  const chilizTicketsData = await chilizTickets;
+  const chilizTicketsFormatted = chilizTicketsData.ChilizTickets.map((ticket: ChilizTicket) => {
+    return {
+      "attendeeEmail": ticket.email,
+      "attendeeName": "Chiliz Builder",
+      "eventName": "Chiliz FanAthon",
+      "ticketName": "Chiliz",
+      "ticketId": uuidv4(),
+      "eventId": uuidv4(),
+      "productId": uuidv4(),
+      "ticketCategory": "Chiliz"
+    }
+  });
   const tickets = TicketFileSchema.parse({
     "Linea": lineaTicketsFormatted,
+    "Chiliz": chilizTicketsFormatted,
     "HackZuzalu": [
       {
         "attendeeEmail": "pablo@hashingsystems.com",
