@@ -111,6 +111,40 @@ export async function loadChilizTickets(): Promise<Record<string, ChilizTicket[]
 }
 
 
+async function queryScrollContract() {
+  const provider = new ethers.providers.JsonRpcProvider('https://rpc.scroll.io');
+  const contractAddress = '0xb84Df10966a5D7e1ab46D9276F55d57bD336AFC7';
+  const contractABI = [{"inputs":[],"name":"getUuids","outputs":[{"internalType":"string[]","name":"","type":"string[]"}],"stateMutability":"view","type":"function"}]; // Replace with the actual ABI
+  const contract = new ethers.Contract(contractAddress, contractABI, provider);
+  const result = await contract.getUuids(); // Replace with the actual function you want to call
+  return result;
+}
+
+const ScrollTicketSchema = z.object({
+  email: z.string(),
+  uuid: z.string().uuid(),
+  commitment: z.string(),
+  role: z.string(),
+  terms_agreed: z.number(),
+});
+
+export type ScrollTicket = z.infer<typeof ScrollTicketSchema>;
+
+const ScrollTicketFileSchema = z.record(z.array(ScrollTicketSchema));
+
+export async function loadScrollTickets(): Promise<Record<string, ScrollTicket[]>> {
+  const uuids = await queryScrollContract();
+  const tickets = await Promise.all(uuids.map(async (uuid: string) => {
+    const ticketData = await queryZupassAPI(uuid);
+    if (!ticketData.email) {
+      throw new Error(`Missing attendeeEmail for uuid: ${uuid}, ${JSON.stringify(ticketData)}`);
+    }
+    return ScrollTicketSchema.parse(ticketData);
+  }));
+  return { "ScrollTickets": tickets };
+}
+
+
 const MantleTicketSchema = z.object({
   email: z.string(),
   uuid: z.string().uuid(),
@@ -173,6 +207,20 @@ export async function loadTickets(): Promise<Record<string, Ticket[]>> {
       "ticketCategory": "Chiliz Fan"
     }
   });
+  const scrollTickets = loadScrollTickets();
+  const scrollTicketsData = await scrollTickets;
+  const scrollTicketsFormatted = scrollTicketsData.ScrollTickets.map((ticket: ScrollTicket) => {
+    return {
+      "attendeeEmail": ticket.email,
+      "attendeeName": "Scroll Builder",
+      "eventName": "Scroll Buildathon",
+      "ticketName": "Scroll",
+      "ticketId": uuidv4(),
+      "eventId": uuidv4(),
+      "productId": uuidv4(),
+      "ticketCategory": "Scroll"
+    }
+  });
 
   const mantleTickets = loadMantleTickets();
   const mantleTicketsData = await mantleTickets;
@@ -192,6 +240,7 @@ export async function loadTickets(): Promise<Record<string, Ticket[]>> {
     "Linea": lineaTicketsFormatted,
     "Chiliz": chilizTicketsFormatted,
     "Mantle": mantleTicketsFormatted,
+    "Scroll": scrollTicketsFormatted,
     "Zuzalu": [
       {
         "attendeeEmail": "pablo@hashingsystems.com",
