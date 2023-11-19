@@ -14,7 +14,7 @@ const TicketSchema = z.object({
   ticketId: z.string().uuid(),
   eventId: z.string().uuid(),
   productId: z.string().uuid(),
-  ticketCategory: z.enum(["Devconnect", "ZuConnect", "HackZuzalu", "EthIstanbul", "Linea", "Chiliz Fan", "Mantle"]).transform((str) => {
+  ticketCategory: z.enum(["Devconnect", "ZuConnect", "HackZuzalu", "EthIstanbul", "Linea", "Chiliz Fan", "Mantle", "Scroll"]).transform((str) => {
     if (str === "Devconnect") {
       return TicketCategory.Devconnect;
     } else {
