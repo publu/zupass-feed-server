@@ -89,7 +89,7 @@ export async function initFeedHost() {
         }
       }
     ],
-    "https://zk-feed-server.vercel.app/feeds",
+    "https://butter-silken-fall.glitch.me/https://zk-feed-server.vercel.app/feeds",
     "ZuzaFrens Feed Server"
   );
 }
