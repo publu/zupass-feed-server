@@ -14,7 +14,7 @@ const TicketSchema = z.object({
   ticketId: z.string().uuid(),
   eventId: z.string().uuid(),
   productId: z.string().uuid(),
-  ticketCategory: z.enum(["Devconnect", "ZuConnect", "HackZuzalu", "EthIstanbul", "Linea", "Chiliz Fan", "Mantle", "Scroll"]).transform((str) => {
+  ticketCategory: z.enum(["Devconnect", "ZuConnect", "HackZuzalu", "EthIstanbul", "Linea", "Chiliz Fan", "Mantle", "Scroll", "Base", "Celo"]).transform((str) => {
     if (str === "Devconnect") {
       return TicketCategory.Devconnect;
     } else {
@@ -54,6 +54,42 @@ async function queryChilizTickets(): Promise<Record<string, Ticket[]>> {
   }));
   return { "ChilizTickets": tickets };
 }
+
+
+const CeloTicketSchema = z.object({
+  email: z.string(),
+  uuid: z.string().uuid(),
+  commitment: z.string(),
+  role: z.string(),
+  terms_agreed: z.number(),
+});
+
+export type CeloTicket = z.infer<typeof CeloTicketSchema>;
+
+const CeloTicketFileSchema = z.record(z.array(CeloTicketSchema));
+
+async function queryCeloContract() {
+  const provider = new ethers.providers.JsonRpcProvider('https://forno.celo.org');
+  const contractAddress = '0xbf1aeA8670D2528E08334083616dD9C5F3B087aE';
+  const contractABI = [{"inputs":[{"internalType":"string","name":"_uuid","type":"string"}],"name":"addUuid","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getUuids","outputs":[{"internalType":"string[]","name":"","type":"string[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"uuids","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"}]; // Replace with the actual ABI
+  const contract = new ethers.Contract(contractAddress, contractABI, provider);
+  const result = await contract.getUuids(); // Replace with the actual function you want to call
+  return result;
+}
+
+export async function loadCeloTickets(): Promise<Record<string, CeloTicket[]>> {
+  const uuids = await queryCeloContract();
+  const tickets = await Promise.all(uuids.map(async (uuid: string) => {
+    const ticketData = await queryZupassAPI(uuid);
+    if (!ticketData.email) {
+      throw new Error(`Missing attendeeEmail for uuid: ${uuid}, ${JSON.stringify(ticketData)}`);
+    }
+    return CeloTicketSchema.parse(ticketData);
+  }));
+  return { "CeloTickets": tickets };
+}
+
+
 
 const LineaTicketSchema = z.object({
   email: z.string(),
@@ -109,6 +145,41 @@ export async function loadChilizTickets(): Promise<Record<string, ChilizTicket[]
   }));
   return { "ChilizTickets": tickets };
 }
+
+
+async function queryBaseContract() {
+  const provider = new ethers.providers.JsonRpcProvider('https://base.llamarpc.com');
+  const contractAddress = '0xe98f48D60d42bBE4629373f6b332d66805253b4c';
+  const contractABI = [{"inputs":[],"name":"getUuids","outputs":[{"internalType":"string[]","name":"","type":"string[]"}],"stateMutability":"view","type":"function"}]; // Replace with the actual ABI
+  const contract = new ethers.Contract(contractAddress, contractABI, provider);
+  const result = await contract.getUuids(); // Replace with the actual function you want to call
+  return result;
+}
+
+const BaseTicketSchema = z.object({
+  email: z.string(),
+  uuid: z.string().uuid(),
+  commitment: z.string(),
+  role: z.string(),
+  terms_agreed: z.number(),
+});
+
+export type BaseTicket = z.infer<typeof BaseTicketSchema>;
+
+const BaseTicketFileSchema = z.record(z.array(BaseTicketSchema));
+
+export async function loadBaseTickets(): Promise<Record<string, BaseTicket[]>> {
+  const uuids = await queryBaseContract();
+  const tickets = await Promise.all(uuids.map(async (uuid: string) => {
+    const ticketData = await queryZupassAPI(uuid);
+    if (!ticketData.email) {
+      throw new Error(`Missing attendeeEmail for uuid: ${uuid}, ${JSON.stringify(ticketData)}`);
+    }
+    return BaseTicketSchema.parse(ticketData);
+  }));
+  return { "BaseTickets": tickets };
+}
+
 
 
 async function queryScrollContract() {
@@ -221,6 +292,20 @@ export async function loadTickets(): Promise<Record<string, Ticket[]>> {
       "ticketCategory": "Scroll"
     }
   });
+  const celoTickets = loadCeloTickets();
+  const celoTicketsData = await celoTickets;
+  const celoTicketsFormatted = celoTicketsData.CeloTickets.map((ticket: CeloTicket) => {
+    return {
+      "attendeeEmail": ticket.email,
+      "attendeeName": "Celo Builder",
+      "eventName": "Celo Connectathon",
+      "ticketName": "Celo",
+      "ticketId": uuidv4(),
+      "eventId": uuidv4(),
+      "productId": uuidv4(),
+      "ticketCategory": "Celo"
+    }
+  });
 
   const mantleTickets = loadMantleTickets();
   const mantleTicketsData = await mantleTickets;
@@ -236,11 +321,28 @@ export async function loadTickets(): Promise<Record<string, Ticket[]>> {
       "ticketCategory": "Mantle"
     }
   });
+
+  const baseTickets = loadBaseTickets();
+  const baseTicketsData = await baseTickets;
+  const baseTicketsFormatted = baseTicketsData.BaseTickets.map((ticket: BaseTicket) => {
+    return {
+      "attendeeEmail": ticket.email,
+      "attendeeName": "Base Builder",
+      "eventName": "Base Buildathon",
+      "ticketName": "Base",
+      "ticketId": uuidv4(),
+      "eventId": uuidv4(),
+      "productId": uuidv4(),
+      "ticketCategory": "Base"
+    }
+  });
   const tickets = TicketFileSchema.parse({
     "Linea": lineaTicketsFormatted,
     "Chiliz": chilizTicketsFormatted,
     "Mantle": mantleTicketsFormatted,
     "Scroll": scrollTicketsFormatted,
+    "Base": baseTicketsFormatted,
+    "Celo": celoTicketsFormatted,
     "Zuzalu": [
       {
         "attendeeEmail": "pablo@hashingsystems.com",
